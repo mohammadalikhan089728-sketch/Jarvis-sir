@@ -1,0 +1,6 @@
+# Copy to local.properties for local Android Studio builds.
+# Never commit local.properties or API secrets.
+sdk.dir=/Users/YOUR_USER/Library/Android/sdk
+JARVIS_PROXY_BASE_URL=
+FIREBASE_DATABASE_URL=
+JARVIS_GEMINI_MODEL=gemini-4-hydrogen

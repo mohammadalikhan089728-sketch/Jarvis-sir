@@ -1,0 +1,351 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Owner profile and assistant configuration isolated per user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "deviceModel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "primaryLanguage": {
+          "type": "string",
+          "enum": ["Hinglish", "English"]
+        },
+        "secondaryLanguage": {
+          "type": "string",
+          "enum": ["English", "Hinglish"]
+        },
+        "activeModelId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 100
+        },
+        "realtimeDatabaseUrl": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "wakeWordEnabled": {
+          "type": "boolean"
+        },
+        "ttsRate": {
+          "type": "number"
+        },
+        "confirmSensitiveActions": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "ownerName",
+        "deviceModel",
+        "primaryLanguage",
+        "secondaryLanguage",
+        "activeModelId",
+        "wakeWordEnabled",
+        "confirmSensitiveActions",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ConversationMessage": {
+      "title": "ConversationMessage",
+      "description": "Persisted JARVIS conversation turn with role, text, channel, and tool summary.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["user", "assistant", "system"]
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000
+        },
+        "channel": {
+          "type": "string",
+          "enum": ["voice", "text", "vision", "automation"]
+        },
+        "modelUsed": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "toolSummary": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "sessionId",
+        "role",
+        "content",
+        "channel",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MemoryRecord": {
+      "title": "MemoryRecord",
+      "description": "Long-term searchable memory record for preferences, projects, instructions, and web dev knowledge.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["preference", "project", "instruction", "webdev", "conversation", "contact_note"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "tags": {
+          "type": "array"
+        },
+        "importance": {
+          "type": "string",
+          "enum": ["low", "normal", "high", "critical"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "category",
+        "title",
+        "content",
+        "importance",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "TaskRecord": {
+      "title": "TaskRecord",
+      "description": "Autonomous background and foreground task record with retry and recovery support.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "category": {
+          "type": "string",
+          "enum": ["automation", "website", "research", "social", "voice", "vision", "system"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["queued", "running", "awaiting_confirmation", "paused", "completed", "failed", "cancelled"]
+        },
+        "progress": {
+          "type": "integer"
+        },
+        "retryCount": {
+          "type": "integer"
+        },
+        "lastError": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "resultSummary": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "title",
+        "category",
+        "status",
+        "progress",
+        "retryCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WorkspaceProject": {
+      "title": "WorkspaceProject",
+      "description": "Website or software developer project persisted in JARVIS workspace.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "stack": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "entryHtml": {
+          "type": "string",
+          "maxLength": 60000
+        },
+        "entryCss": {
+          "type": "string",
+          "maxLength": 30000
+        },
+        "entryJs": {
+          "type": "string",
+          "maxLength": 40000
+        },
+        "sourceNotes": {
+          "type": "string",
+          "maxLength": 8000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "stack",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Owner profile and assistant configuration."
+    },
+    "/users/{userId}/conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/ConversationMessage" },
+      "description": "Persisted JARVIS conversation messages."
+    },
+    "/users/{userId}/memories/{memoryId}": {
+      "schema": { "$ref": "#/entities/MemoryRecord" },
+      "description": "Searchable long-term memories."
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/TaskRecord" },
+      "description": "Task queue, history, and recovery records."
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/WorkspaceProject" },
+      "description": "AI Developer Workspace web projects."
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "profile": {
+          ".validate": "newData.hasChildren(['ownerName', 'updatedAt'])"
+        },
+        "memory": {
+          "$memoryId": {
+            ".validate": "newData.hasChildren(['id', 'category', 'title', 'content', 'importance', 'createdAt', 'updatedAt']) && newData.child('id').val() === $memoryId"
+          }
+        },
+        "conversations": {
+          "$msgId": {
+            ".validate": "newData.hasChildren(['id', 'sessionId', 'role', 'content', 'createdAt']) && newData.child('id').val() === $msgId"
+          }
+        },
+        "preferences": {
+          ".validate": "newData.hasChildren(['activeModelId', 'updatedAt'])"
+        },
+        "tasks": {
+          "$taskId": {
+            ".validate": "newData.hasChildren(['id', 'title', 'category', 'status', 'progress', 'createdAt', 'updatedAt']) && newData.child('id').val() === $taskId"
+          }
+        },
+        "activity": {
+          "$activityId": {
+            ".validate": "newData.hasChildren(['id', 'type', 'summary', 'createdAt']) && newData.child('id').val() === $activityId"
+          }
+        },
+        "projects": {
+          "$projectId": {
+            ".validate": "newData.hasChildren(['id', 'name', 'stack', 'createdAt', 'updatedAt']) && newData.child('id').val() === $projectId"
+          }
+        }
+      }
+    }
+  }
+}

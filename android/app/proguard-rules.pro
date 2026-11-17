@@ -1,0 +1,5 @@
+-keep class com.mozahid.jarvis.memory.** { *; }
+-keep class com.mozahid.jarvis.tasks.** { *; }
+-keep class com.mozahid.jarvis.settings.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*

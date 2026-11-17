@@ -1,0 +1,24 @@
+{
+  "project_info": {
+    "project_number": "221407394392",
+    "firebase_url": "REPLACE_WITH_SINGAPORE_RTDB_URL",
+    "project_id": "jarvis-7402c",
+    "storage_bucket": "jarvis-7402c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "REPLACE_WITH_ANDROID_APP_ID_FROM_FIREBASE_CONSOLE",
+        "android_client_info": {
+          "package_name": "com.mozahid.jarvis"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "REPLACE_WITH_YOUR_FIREBASE_ANDROID_API_KEY"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}

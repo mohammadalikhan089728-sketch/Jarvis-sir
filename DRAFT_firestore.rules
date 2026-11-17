@@ -1,0 +1,271 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'ownerName', 'deviceModel', 'primaryLanguage',
+          'secondaryLanguage', 'activeModelId', 'wakeWordEnabled',
+          'confirmSensitiveActions', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'ownerName', 'deviceModel', 'primaryLanguage',
+          'secondaryLanguage', 'activeModelId', 'realtimeDatabaseUrl',
+          'wakeWordEnabled', 'ttsRate', 'confirmSensitiveActions',
+          'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.userId)
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.ownerName is string && data.ownerName.size() >= 1 && data.ownerName.size() <= 80
+        && data.deviceModel is string && data.deviceModel.size() >= 1 && data.deviceModel.size() <= 80
+        && data.primaryLanguage in ['Hinglish', 'English']
+        && data.secondaryLanguage in ['English', 'Hinglish']
+        && data.activeModelId is string && data.activeModelId.size() >= 3 && data.activeModelId.size() <= 100
+        && (!('realtimeDatabaseUrl' in data) || (data.realtimeDatabaseUrl is string && data.realtimeDatabaseUrl.size() <= 300))
+        && data.wakeWordEnabled is bool
+        && (!('ttsRate' in data) || (data.ttsRate is number && data.ttsRate >= 0.5 && data.ttsRate <= 2.0))
+        && data.confirmSensitiveActions is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidConversation(data, userId, conversationId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'sessionId', 'role', 'content', 'channel', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'userId', 'sessionId', 'role', 'content', 'channel',
+          'modelUsed', 'toolSummary', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == conversationId
+        && isValidId(data.userId)
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && isValidId(data.sessionId)
+        && data.role in ['user', 'assistant', 'system']
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 16000
+        && data.channel in ['voice', 'text', 'vision', 'automation']
+        && (!('modelUsed' in data) || (data.modelUsed is string && data.modelUsed.size() <= 100))
+        && (!('toolSummary' in data) || (data.toolSummary is string && data.toolSummary.size() <= 2000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidTagsList(tags) {
+      return tags is list
+        && tags.size() <= 10
+        && (tags.size() == 0 || (tags[0] is string && tags[0].size() <= 40));
+    }
+
+    function isValidMemory(data, userId, memoryId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'category', 'title', 'content', 'importance', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'userId', 'category', 'title', 'content', 'tags', 'importance', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == memoryId
+        && isValidId(data.userId)
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.category in ['preference', 'project', 'instruction', 'webdev', 'conversation', 'contact_note']
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 8000
+        && (!('tags' in data) || isValidTagsList(data.tags))
+        && data.importance in ['low', 'normal', 'high', 'critical']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidTask(data, userId, taskId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'title', 'category', 'status', 'progress', 'retryCount', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'userId', 'title', 'description', 'category', 'status',
+          'progress', 'retryCount', 'lastError', 'resultSummary', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == taskId
+        && isValidId(data.userId)
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && (!('description' in data) || (data.description is string && data.description.size() <= 4000))
+        && data.category in ['automation', 'website', 'research', 'social', 'voice', 'vision', 'system']
+        && data.status in ['queued', 'running', 'awaiting_confirmation', 'paused', 'completed', 'failed', 'cancelled']
+        && data.progress is int && data.progress >= 0 && data.progress <= 100
+        && data.retryCount is int && data.retryCount >= 0 && data.retryCount <= 20
+        && (!('lastError' in data) || (data.lastError is string && data.lastError.size() <= 1000))
+        && (!('resultSummary' in data) || (data.resultSummary is string && data.resultSummary.size() <= 4000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProject(data, userId, projectId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'name', 'stack', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'userId', 'name', 'stack', 'summary', 'entryHtml', 'entryCss', 'entryJs',
+          'sourceNotes', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == projectId
+        && isValidId(data.userId)
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 160
+        && data.stack is string && data.stack.size() >= 1 && data.stack.size() <= 80
+        && (!('summary' in data) || (data.summary is string && data.summary.size() <= 2000))
+        && (!('entryHtml' in data) || (data.entryHtml is string && data.entryHtml.size() <= 60000))
+        && (!('entryCss' in data) || (data.entryCss is string && data.entryCss.size() <= 30000))
+        && (!('entryJs' in data) || (data.entryJs is string && data.entryJs.size() <= 40000))
+        && (!('sourceNotes' in data) || (data.sourceNotes is string && data.sourceNotes.size() <= 8000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow create: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'ownerName', 'deviceModel', 'primaryLanguage', 'secondaryLanguage',
+          'activeModelId', 'realtimeDatabaseUrl', 'wakeWordEnabled', 'ttsRate',
+          'confirmSensitiveActions', 'updatedAt'
+        ]);
+      allow delete: if isValidId(userId) && isOwner(userId);
+
+      match /conversations/{conversationId} {
+        allow get: if isValidId(userId) && isValidId(conversationId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId) && isValidId(conversationId)
+          && isOwner(userId)
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && isValidConversation(incoming(), userId, conversationId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId) && isValidId(conversationId)
+          && isOwner(userId)
+          && isValidConversation(incoming(), userId, conversationId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['content', 'toolSummary', 'updatedAt']);
+        allow delete: if isValidId(userId) && isValidId(conversationId) && isOwner(userId);
+      }
+
+      match /memories/{memoryId} {
+        allow get: if isValidId(userId) && isValidId(memoryId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId) && isValidId(memoryId)
+          && isOwner(userId)
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && isValidMemory(incoming(), userId, memoryId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId) && isValidId(memoryId)
+          && isOwner(userId)
+          && isValidMemory(incoming(), userId, memoryId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'category', 'title', 'content', 'tags', 'importance', 'updatedAt'
+          ]);
+        allow delete: if isValidId(userId) && isValidId(memoryId) && isOwner(userId);
+      }
+
+      match /tasks/{taskId} {
+        allow get: if isValidId(userId) && isValidId(taskId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId) && isValidId(taskId)
+          && isOwner(userId)
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && isValidTask(incoming(), userId, taskId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId) && isValidId(taskId)
+          && isOwner(userId)
+          && existing().status != 'completed'
+          && existing().status != 'cancelled'
+          && isValidTask(incoming(), userId, taskId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && (
+            (incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'progress', 'lastError', 'resultSummary', 'updatedAt'
+            ])) ||
+            (incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'progress', 'retryCount', 'lastError', 'updatedAt'
+            ]) && incoming().retryCount == existing().retryCount + 1)
+          );
+        allow delete: if isValidId(userId) && isValidId(taskId) && isOwner(userId);
+      }
+
+      match /projects/{projectId} {
+        allow get: if isValidId(userId) && isValidId(projectId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId) && isValidId(projectId)
+          && isOwner(userId)
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && isValidProject(incoming(), userId, projectId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId) && isValidId(projectId)
+          && isOwner(userId)
+          && isValidProject(incoming(), userId, projectId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'stack', 'summary', 'entryHtml', 'entryCss', 'entryJs', 'sourceNotes', 'updatedAt'
+          ]);
+        allow delete: if isValidId(userId) && isValidId(projectId) && isOwner(userId);
+      }
+    }
+  }
+}

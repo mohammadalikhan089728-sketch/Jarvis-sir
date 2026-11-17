@@ -1,0 +1,6 @@
+{
+  "name": "JARVIS — Personal AI Operating Assistant",
+  "description": "Personal AI operating assistant for Mozahid powered by configurable Gemini Flash, Firebase persistence, Hinglish/English voice, autonomous tool orchestration, and Android Studio Kotlin source.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JARVIS</string>
+    <string name="accessibility_service_label">JARVIS Phone Automation</string>
+    <string name="accessibility_service_description">Allows JARVIS to read accessible UI elements and perform confirmed touch, scroll, text entry, and navigation actions on your behalf. Never bypasses system security or protected screens.</string>
+</resources>
